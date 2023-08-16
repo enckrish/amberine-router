@@ -1,58 +1,29 @@
 syntax = "proto3";
 option go_package = "./pb";
 
-message UUID {
-  string id = 1;
-}
-
-// Before sending any requests, client has to let the server know
-// Type0 corresponds to `isolated` service logs, in future new types may be added
-// like for combined log streams
-enum Type {
-  t0 = 0;
-  t1 = 1;
-}
-
 message InitRequest_Type0 {
-  UUID id = 1;
+  // should not be filled in upstream
+  string streamId = 1;
   string service = 2;
   uint32 historySize = 3;
 }
 
-// The handling of multiple streams is left on the server
-//message InitRequest_Type1 {
-//  repeated UUID ids = 1;
-//}
-
 // This same id should be sent with all messages for the registered stream
 message InitResponse_Type0 {
-  UUID id = 1;
-}
-
-// Contains multiple log lines from a single service
-message LogInstance_Type0 {
-  repeated string logs = 1;
+  string streamId = 1;
 }
 
 message AnalyzerRequest_Type0 {
-  UUID id = 1;
-  LogInstance_Type0 logs = 2;
+  string streamId = 1;
+  string messageId = 2;
+  repeated string logs = 3;
 }
 
 message AnalyzerResponse {
   bool committed = 1;
 }
 
-// Test Messages
-message String {
-  string str = 1;
-}
-message Empty {}
-
 service Router {
-  // Test RPC
-  rpc admin_setPromptTmpl(String) returns(Empty) {}
-
   rpc init_Type0(InitRequest_Type0) returns (InitResponse_Type0) {};
   rpc routeLog_Type0(stream AnalyzerRequest_Type0) returns (stream AnalyzerResponse) {}
 }

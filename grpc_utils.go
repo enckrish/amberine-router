@@ -18,7 +18,7 @@ const serverPort = 50051
 type RouterServer struct {
 	pb.UnimplementedRouterServer
 
-	// Better to use a persistent db, e.g. Redis
+	// TODO replace with a persistent db, e.g. Redis
 	id2service map[string]string
 	prod       *KafkaProducer
 }
@@ -35,6 +35,7 @@ func (r *RouterServer) Start() error {
 	if err != nil {
 		return err
 	}
+	// TODO add authentication
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterRouterServer(grpcServer, r)
@@ -68,14 +69,13 @@ func (r *RouterServer) Init_Type0(
 	req *pb.InitRequest_Type0,
 ) (*pb.InitResponse_Type0, error) {
 	id := uuid.New().String()
-
-	if req.Id != nil {
+	if req.StreamId != "" {
 		return nil, errors.New("id filled")
 	}
 	r.id2service[id] = strings.ToLower(req.Service)
-	reqWithId := &pb.InitRequest_Type0{Id: &pb.UUID{Id: id}, Service: req.Service, HistorySize: req.HistorySize}
+	reqWithId := &pb.InitRequest_Type0{StreamId: id, Service: req.Service, HistorySize: req.HistorySize}
 
 	_, err := r.prod.PublishInitRequest(reqWithId, r.id2service)
-	res := pb.InitResponse_Type0{Id: &pb.UUID{Id: id}}
+	res := pb.InitResponse_Type0{StreamId: id}
 	return &res, err
 }

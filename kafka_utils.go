@@ -1,8 +1,8 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/IBM/sarama"
-	"google.golang.org/protobuf/proto"
 	"log"
 	"router/pb"
 )
@@ -13,14 +13,10 @@ const brokerAddress = "localhost:9092"
 const replicationFactor = 1
 
 // Topic to publish analyses by Analyzer processes
-const analysisStoreTopic = "topic.log.analysis.1"
+const analysisStoreTopic = "topic.log.analysis.result.1"
 
 // Topic to publish analysis requests, consumed by Analyzers
 const analysisRequestStoreTopic = "topic.log.requests.analysis.1"
-
-// Topic to publish init requests, consumed by Analyzers,
-// to set up buffers and internal routing, single partition, because of less frequency
-const initRequestStoreTopic = "topic.log.requests.init.1"
 
 var brokerAddresses = []string{brokerAddress}
 
@@ -53,7 +49,6 @@ func NewKafkaProducer(initTopic bool) *KafkaProducer {
 func createTopics(admin sarama.ClusterAdmin) {
 	createTopic(admin, analysisStoreTopic, 3, replicationFactor, true)
 	createTopic(admin, analysisRequestStoreTopic, 3, replicationFactor, true)
-	createTopic(admin, initRequestStoreTopic, 1, replicationFactor, true)
 }
 
 func createTopic(admin sarama.ClusterAdmin, topic string, numPartitions int32, replFactor int16, ignoreErr bool) {
@@ -81,15 +76,15 @@ func createProducer(config *sarama.Config) sarama.SyncProducer {
 }
 
 func (k *KafkaProducer) PublishAnalysisRequest(msg *pb.AnalyzerRequest_Type0, id2Service map[string]string) (*sarama.ProducerMessage, error) {
-	pkey := id2Service[msg.Id.Id]
-	data, err := proto.Marshal(msg)
+	service := id2Service[msg.StreamId]
+	data, err := json.Marshal(msg)
 	if err != nil {
 		return nil, err
 	}
 	message := &sarama.ProducerMessage{
 		Topic: analysisRequestStoreTopic,
-		Key:   sarama.StringEncoder(pkey),
-		Value: sarama.ByteEncoder(data),
+		Key:   sarama.StringEncoder(service),
+		Value: sarama.StringEncoder(data),
 	}
 
 	_, _, err = k.producer.SendMessage(message)
@@ -97,13 +92,14 @@ func (k *KafkaProducer) PublishAnalysisRequest(msg *pb.AnalyzerRequest_Type0, id
 }
 
 func (k *KafkaProducer) PublishInitRequest(msg *pb.InitRequest_Type0, _ map[string]string) (*sarama.ProducerMessage, error) {
-	data, err := proto.Marshal(msg)
+	data, err := json.Marshal(msg)
 	if err != nil {
 		return nil, err
 	}
 	message := &sarama.ProducerMessage{
-		Topic: initRequestStoreTopic,
-		Value: sarama.ByteEncoder(data),
+		Topic: analysisRequestStoreTopic,
+		Key:   sarama.StringEncoder(msg.Service),
+		Value: sarama.StringEncoder(data),
 	}
 
 	_, _, err = k.producer.SendMessage(message)

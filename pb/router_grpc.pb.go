@@ -22,8 +22,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RouterClient interface {
-	// Test RPC
-	AdminSetPromptTmpl(ctx context.Context, in *String, opts ...grpc.CallOption) (*Empty, error)
 	Init_Type0(ctx context.Context, in *InitRequest_Type0, opts ...grpc.CallOption) (*InitResponse_Type0, error)
 	RouteLog_Type0(ctx context.Context, opts ...grpc.CallOption) (Router_RouteLog_Type0Client, error)
 }
@@ -34,15 +32,6 @@ type routerClient struct {
 
 func NewRouterClient(cc grpc.ClientConnInterface) RouterClient {
 	return &routerClient{cc}
-}
-
-func (c *routerClient) AdminSetPromptTmpl(ctx context.Context, in *String, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/Router/admin_setPromptTmpl", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *routerClient) Init_Type0(ctx context.Context, in *InitRequest_Type0, opts ...grpc.CallOption) (*InitResponse_Type0, error) {
@@ -89,8 +78,6 @@ func (x *routerRouteLog_Type0Client) Recv() (*AnalyzerResponse, error) {
 // All implementations must embed UnimplementedRouterServer
 // for forward compatibility
 type RouterServer interface {
-	// Test RPC
-	AdminSetPromptTmpl(context.Context, *String) (*Empty, error)
 	Init_Type0(context.Context, *InitRequest_Type0) (*InitResponse_Type0, error)
 	RouteLog_Type0(Router_RouteLog_Type0Server) error
 	mustEmbedUnimplementedRouterServer()
@@ -100,9 +87,6 @@ type RouterServer interface {
 type UnimplementedRouterServer struct {
 }
 
-func (UnimplementedRouterServer) AdminSetPromptTmpl(context.Context, *String) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AdminSetPromptTmpl not implemented")
-}
 func (UnimplementedRouterServer) Init_Type0(context.Context, *InitRequest_Type0) (*InitResponse_Type0, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Init_Type0 not implemented")
 }
@@ -120,24 +104,6 @@ type UnsafeRouterServer interface {
 
 func RegisterRouterServer(s grpc.ServiceRegistrar, srv RouterServer) {
 	s.RegisterService(&Router_ServiceDesc, srv)
-}
-
-func _Router_AdminSetPromptTmpl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(String)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RouterServer).AdminSetPromptTmpl(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Router/admin_setPromptTmpl",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RouterServer).AdminSetPromptTmpl(ctx, req.(*String))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Router_Init_Type0_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -191,10 +157,6 @@ var Router_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Router",
 	HandlerType: (*RouterServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "admin_setPromptTmpl",
-			Handler:    _Router_AdminSetPromptTmpl_Handler,
-		},
 		{
 			MethodName: "init_Type0",
 			Handler:    _Router_Init_Type0_Handler,
