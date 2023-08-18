@@ -22,8 +22,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RouterClient interface {
-	Init_Type0(ctx context.Context, in *InitRequest_Type0, opts ...grpc.CallOption) (*InitResponse_Type0, error)
+	AdminSetTargets(ctx context.Context, in *SetTargetsRequest, opts ...grpc.CallOption) (*BoolResult, error)
+	AdminSetNewGroupAnalyzer(ctx context.Context, in *SetNewGroupAnalyzerReq, opts ...grpc.CallOption) (*BoolResult, error)
 	RouteLog_Type0(ctx context.Context, opts ...grpc.CallOption) (Router_RouteLog_Type0Client, error)
+	Init_Type0(ctx context.Context, in *InitRequest_Type0, opts ...grpc.CallOption) (*InitResponse_Type0, error)
 }
 
 type routerClient struct {
@@ -34,9 +36,18 @@ func NewRouterClient(cc grpc.ClientConnInterface) RouterClient {
 	return &routerClient{cc}
 }
 
-func (c *routerClient) Init_Type0(ctx context.Context, in *InitRequest_Type0, opts ...grpc.CallOption) (*InitResponse_Type0, error) {
-	out := new(InitResponse_Type0)
-	err := c.cc.Invoke(ctx, "/Router/init_Type0", in, out, opts...)
+func (c *routerClient) AdminSetTargets(ctx context.Context, in *SetTargetsRequest, opts ...grpc.CallOption) (*BoolResult, error) {
+	out := new(BoolResult)
+	err := c.cc.Invoke(ctx, "/Router/admin_setTargets", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *routerClient) AdminSetNewGroupAnalyzer(ctx context.Context, in *SetNewGroupAnalyzerReq, opts ...grpc.CallOption) (*BoolResult, error) {
+	out := new(BoolResult)
+	err := c.cc.Invoke(ctx, "/Router/admin_setNewGroupAnalyzer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -74,12 +85,23 @@ func (x *routerRouteLog_Type0Client) Recv() (*AnalyzerResponse, error) {
 	return m, nil
 }
 
+func (c *routerClient) Init_Type0(ctx context.Context, in *InitRequest_Type0, opts ...grpc.CallOption) (*InitResponse_Type0, error) {
+	out := new(InitResponse_Type0)
+	err := c.cc.Invoke(ctx, "/Router/init_Type0", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RouterServer is the server API for Router service.
 // All implementations must embed UnimplementedRouterServer
 // for forward compatibility
 type RouterServer interface {
-	Init_Type0(context.Context, *InitRequest_Type0) (*InitResponse_Type0, error)
+	AdminSetTargets(context.Context, *SetTargetsRequest) (*BoolResult, error)
+	AdminSetNewGroupAnalyzer(context.Context, *SetNewGroupAnalyzerReq) (*BoolResult, error)
 	RouteLog_Type0(Router_RouteLog_Type0Server) error
+	Init_Type0(context.Context, *InitRequest_Type0) (*InitResponse_Type0, error)
 	mustEmbedUnimplementedRouterServer()
 }
 
@@ -87,11 +109,17 @@ type RouterServer interface {
 type UnimplementedRouterServer struct {
 }
 
-func (UnimplementedRouterServer) Init_Type0(context.Context, *InitRequest_Type0) (*InitResponse_Type0, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Init_Type0 not implemented")
+func (UnimplementedRouterServer) AdminSetTargets(context.Context, *SetTargetsRequest) (*BoolResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminSetTargets not implemented")
+}
+func (UnimplementedRouterServer) AdminSetNewGroupAnalyzer(context.Context, *SetNewGroupAnalyzerReq) (*BoolResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminSetNewGroupAnalyzer not implemented")
 }
 func (UnimplementedRouterServer) RouteLog_Type0(Router_RouteLog_Type0Server) error {
 	return status.Errorf(codes.Unimplemented, "method RouteLog_Type0 not implemented")
+}
+func (UnimplementedRouterServer) Init_Type0(context.Context, *InitRequest_Type0) (*InitResponse_Type0, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Init_Type0 not implemented")
 }
 func (UnimplementedRouterServer) mustEmbedUnimplementedRouterServer() {}
 
@@ -106,20 +134,38 @@ func RegisterRouterServer(s grpc.ServiceRegistrar, srv RouterServer) {
 	s.RegisterService(&Router_ServiceDesc, srv)
 }
 
-func _Router_Init_Type0_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InitRequest_Type0)
+func _Router_AdminSetTargets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetTargetsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RouterServer).Init_Type0(ctx, in)
+		return srv.(RouterServer).AdminSetTargets(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Router/init_Type0",
+		FullMethod: "/Router/admin_setTargets",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RouterServer).Init_Type0(ctx, req.(*InitRequest_Type0))
+		return srv.(RouterServer).AdminSetTargets(ctx, req.(*SetTargetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Router_AdminSetNewGroupAnalyzer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetNewGroupAnalyzerReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RouterServer).AdminSetNewGroupAnalyzer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Router/admin_setNewGroupAnalyzer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RouterServer).AdminSetNewGroupAnalyzer(ctx, req.(*SetNewGroupAnalyzerReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -150,6 +196,24 @@ func (x *routerRouteLog_Type0Server) Recv() (*AnalyzerRequest_Type0, error) {
 	return m, nil
 }
 
+func _Router_Init_Type0_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitRequest_Type0)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RouterServer).Init_Type0(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Router/init_Type0",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RouterServer).Init_Type0(ctx, req.(*InitRequest_Type0))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Router_ServiceDesc is the grpc.ServiceDesc for Router service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -157,6 +221,14 @@ var Router_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Router",
 	HandlerType: (*RouterServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "admin_setTargets",
+			Handler:    _Router_AdminSetTargets_Handler,
+		},
+		{
+			MethodName: "admin_setNewGroupAnalyzer",
+			Handler:    _Router_AdminSetNewGroupAnalyzer_Handler,
+		},
 		{
 			MethodName: "init_Type0",
 			Handler:    _Router_Init_Type0_Handler,

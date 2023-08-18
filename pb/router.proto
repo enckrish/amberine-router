@@ -23,7 +23,26 @@ message AnalyzerResponse {
   bool committed = 1;
 }
 
+message SetTargetsRequest {
+  string service = 1;
+  // targets are comprised of groupIds
+  repeated string targets = 2;
+}
+
+message SetNewGroupAnalyzerReq {
+  string groupId = 1;
+  string newSelfId = 2;
+}
+
+message BoolResult {
+  bool done = 1;
+}
+
+
 service Router {
-  rpc init_Type0(InitRequest_Type0) returns (InitResponse_Type0) {};
+  rpc admin_setTargets(SetTargetsRequest) returns (BoolResult);
+  rpc admin_setNewGroupAnalyzer(SetNewGroupAnalyzerReq) returns (BoolResult);
+
   rpc routeLog_Type0(stream AnalyzerRequest_Type0) returns (stream AnalyzerResponse) {}
+  rpc init_Type0(InitRequest_Type0) returns (InitResponse_Type0) {};
 }
