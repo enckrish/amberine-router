@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-const serverPort = 50051
+const grpcPort = 50051
 
 type RouterServer struct {
 	pb.UnimplementedRouterServer
@@ -33,7 +33,7 @@ func NewRouterServer() *RouterServer {
 }
 
 func (r *RouterServer) Start() error {
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", serverPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", grpcPort))
 	if err != nil {
 		return err
 	}
@@ -79,6 +79,9 @@ func (r *RouterServer) Init_Type0(
 	reqWithId := &pb.InitRequest_Type0{StreamId: id, Service: req.Service, HistorySize: req.HistorySize}
 
 	_, err := r.prod.PublishInitRequest(reqWithId, r.id2service)
+	if err != nil {
+		panic(err)
+	}
 	res := pb.InitResponse_Type0{StreamId: id}
 	return &res, err
 }
@@ -121,6 +124,3 @@ func (r *RouterServer) Admin_setNewGroupAnalyzer(
 	//fmt.Println("Leader update result:", result)
 	return &pb.BoolResult{Done: true}, nil
 }
-
-// TODO for now, group_id be service name
-// now will have to add check in analyzer that only analyzes if it is the leader

@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"github.com/IBM/sarama"
 	"log"
+	"os"
 	"router/pb"
 )
-
-const brokerAddress = "localhost:9092"
 
 // Ideally set to > 1 for fault tolerance
 const replicationFactor = 1
@@ -18,7 +17,7 @@ const analysisStoreTopic = "topic.log.analysis.result.1"
 // Topic to publish analysis requests, consumed by Analyzers
 const analysisRequestStoreTopic = "topic.log.requests.analysis.1"
 
-var brokerAddresses = []string{brokerAddress}
+var brokerAddresses = []string{os.Getenv("AMBER_KAFKA_URL")}
 
 type KafkaProducer struct {
 	config   *sarama.Config
